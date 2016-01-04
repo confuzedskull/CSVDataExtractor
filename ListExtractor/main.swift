@@ -20,7 +20,7 @@ func output(text: String) {
     print(text)
 }
 
-func execute(csvFile: String, column: Int) {
+func execute(csvFile: String, columns: [String]) {
     let fileName = csvFile.substringToIndex(csvFile.endIndex.advancedBy(-4))
     let fileExtension = csvFile.substringFromIndex(csvFile.endIndex.advancedBy(-3))
     if fileExtension == "csv" {
@@ -29,10 +29,16 @@ func execute(csvFile: String, column: Int) {
             var extractedData = String()
             output("Extracting")
             for line in 1...fileLines.count-1 {
-                if !fileLines[line].isEmpty{
-                    let items = fileLines[line].componentsSeparatedByString(",")
-                    extractedData.appendContentsOf(items[column]+"\n")
+                for column in columns {
+                    if !fileLines[line].isEmpty{
+                        let items = fileLines[line].componentsSeparatedByString(",")
+                        extractedData.appendContentsOf(items[Int(column)!])
+                        if column != columns.last {
+                            extractedData.append(Character(","))
+                        }
+                    }
                 }
+                extractedData.append(Character("\n"))
             }
             output("Done.")
             try? extractedData.writeToFile(fileName+".txt", atomically: true, encoding: NSUTF8StringEncoding)
@@ -52,13 +58,13 @@ if Process.arguments.count == 1 {
     output("Please provide a .csv file")
     csvFile = input()
 }
-output("Which column of data would you like to extract?")
-let columnNumber = Int(input())
+output("Which columns of data would you like to extract?")
+let columns = input().componentsSeparatedByString(",")
 
 if csvFile != nil {
-    execute(csvFile!, column: columnNumber!)
+    execute(csvFile!, columns: columns)
 } else {
     for argument in Process.arguments {
-        execute(argument, column: columnNumber!)
+        execute(csvFile!, columns: columns)
     }
 }
